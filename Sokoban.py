@@ -5,6 +5,18 @@ from winsound import Beep
 def goCheat():
     pass
 
+def getNumber(x, y):
+    pass
+
+def movePlayerTo(x, y, count):
+    pass
+
+def movePlayerBoxTo(x, y, count, numberBox):
+    pass
+
+def getBox(x, y):
+    pass
+
 #повертаємо строку у вигляді ММ:СС
 def getMinSec(s):
     intMin = s // 60                                #знаходимо хвилини
@@ -125,7 +137,64 @@ def reset():
     updateText()
 
 def move(v):
-    pass
+    print("Метод move()")
+
+    if (moving):
+        return 0
+    cnv.delete(player[2])
+    player[2] = cnv.create_image(SQUARE_SIZE // 2 + player[1] * SQUARE_SIZE, SQUARE_SIZE // 2 + player[0] * SQUARE_SIZE, image=img[3][v])
+    x = player[0]
+    y = player[1]
+    Beep[625, 10]
+
+    if (v == UPKEY):
+        check = getNumber(x - 1, y)
+        if (check == 0):
+            movePlayerTo(0, -8, 8)
+            player[0] -= 1
+        elif (check == 2):
+            nextCheck = getNumber(x - 2, y)
+            if (nextCheck == 0):
+                numberBox = getBox(x - 1, y)
+                movePlayerBoxTo(0, -8, 8, numberBox)
+                player[0] -= 1
+                boxes[numberBox][0] -= 1
+    elif (v == DOWNKEY):
+        check = getNumber(x + 1, y)
+        if (check == 0):
+            movePlayerTo(0, 8, 8)
+            player[0] += 1
+        elif (check == 2):
+            nextCheck = getNumber(x + 2, y)
+            if (nextCheck == 0):
+                numberBox = getBox(x + 1, y)
+                movePlayerBoxTo(0, 8, 8, numberBox)
+                player[0] += 1
+                boxes[numberBox][0] += 1
+    elif (v == LEFTKEY):
+        check = getNumber(x, y - 1)
+        if (check == 0):
+            movePlayerTo(-8, 0, 8)
+            player[1] -= 1
+        elif (check == 2):
+            nextCheck = getNumber(x, y - 2)
+            if (nextCheck == 0):
+                numberBox = getBox(x, y - 1)
+                movePlayerBoxTo(-8, 0, 8, numberBox)
+                player[0] -= 1
+                boxes[numberBox][0] -= 1
+    elif (v == RIGHTKEY):
+        check = getNumber(x, y + 1)
+        if (check == 0):
+            movePlayerTo(8, 0, 8)
+            player[1] += 1
+        elif (check == 2):
+            nextCheck = getNumber(x, y + 2)
+            if (nextCheck == 0):
+                numberBox = getBox(x, y + 1)
+                movePlayerBoxTo(8, 0, 8, numberBox)
+                player[0] += 1
+                boxes[numberBox][0] += 1
 
 #===============================Start programm =========================================
 #створюємо вікно
