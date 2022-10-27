@@ -3,19 +3,108 @@ from time import sleep
 from winsound import Beep
 
 def goCheat():
-    pass
+    global moving
+    print("Мєтод goCheat()")
+    moving = True
+    for i in range(len(boxes)):
+        boxes[i][0] = finish[i][0]
+        boxes[i][1] = finish[i][1]
+        cnv.coords(boxes[i][2], SQUARE_SIZE // 2 + boxes[i][1] * SQUARE_SIZE, SQUARE_SIZE // 2 + boxes[i][0] * SQUARE_SIZE)
 
-def getNumber(x, y):
-    pass
+    cnv.update()
+    sleep(2)
+    checkBoxInFinish()
+
+def nextLevelSet(btnNext: Button):
+    global level
+    level += 1
+    cnv.focus_set()
+    btnNext.destroy()
+    btnCheat.place(x=10, y=590)
+    btnReset.place(x=10, y=550)
+    cnv.delete(ALL)
+    reset()
+
+
+def nextLevel():
+    print("Мєтод nextLevel()")
+    cnv.delete(ALL)
+    stopTimer()
+
+    btnCheat.place(x = -100, y = -100)
+    btnReset.place(x = -100, y = -100)
+    btnNext = Button(text="Продовжити", font="Verdana, 19", width=45)
+    btnNext.place(x = 300, y = 550)
+    btnNext.focus_set()
+    btnNext["command"] = lambda b=btnNext: nextLevelSet(b)
+
+    cnv.create_text(WIDTH * SQUARE_SIZE // 2, 200, fill="#AAFFCC", text=f"Вітаю, ви зібрали головоломку за {getMinSec(second)}!", font="Verdana, 25")
+
+def checkBoxInFinish():
+    global finish, win
+    print("checkBoxInFinish()")
+
+    for fin in finish:
+        fin[3] = False
+    
+    win = True
+    fin = 0
+    while (fin < len(finish) and win):
+        box = 0
+        while (box < len(boxes)):
+            if (finish[fin][0:2] == boxes[box][0:2]):
+                finish[fin][3] = True
+                box = len(boxes)
+            box += 1
+        win = win and finish[fin][3]
+        fin += 1
+    
+    if (win):
+        #Beep(750, 10)
+        #Beep(1750, 10)
+        nextLevel()
 
 def movePlayerTo(x, y, count):
-    pass
+    global moving
+    count -=1
+    cnv.move(player[2], x, y)
+    if (count > 0):
+        moving = True
+        root.after(20, lambda x=x, y=y, c=count: movePlayerTo(x, y, c))
+    else:
+        print("Мєтод movePlayerTо() виконався")
+        moving = False
 
 def movePlayerBoxTo(x, y, count, numberBox):
-    pass
+    global moving
+    count -=1
+    cnv.move(player[2], x, y)
+    cnv.move(boxes[numberBox][2], x, y)
+    if (count > 0):
+        moving = True
+        root.after(20, lambda x=x, y=y, c=count, n=numberBox: movePlayerBoxTo(x, y, c, n))
+    else:
+        print("Мєтод movePlayerBoxTо() виконався")
+        moving = False
+        checkBoxInFinish()
 
+
+#отримуємо номер об'єкту, в позиції х, у
+def getNumber(x, y):
+    print("Мєтод getNumber()")
+    for box in boxes:
+        if (box[0] == x and box[1] == y):
+            return 2
+    if (dataLevel[x][y] <= 1):
+        return dataLevel[x][y]
+    
+#отримуємо номер ящику в списку boxes
 def getBox(x, y):
-    pass
+    print("Мєтод getBox(x, y)")
+    for i in range(len(boxes)):
+        if (boxes[i][0] == x and boxes[i][1] == y):
+            return i
+    return None
 
 #повертаємо строку у вигляді ММ:СС
 def getMinSec(s):
@@ -138,26 +227,37 @@ def reset():
 
 def move(v):
     print("Метод move()")
-
+    #якщо виконується анімація то прериваємо мєтод
     if (moving):
         return 0
+    #видаляємо зображення
     cnv.delete(player[2])
+    #та одразу створюємо повернутим за вектором
     player[2] = cnv.create_image(SQUARE_SIZE // 2 + player[1] * SQUARE_SIZE, SQUARE_SIZE // 2 + player[0] * SQUARE_SIZE, image=img[3][v])
+    #просто для зручності
     x = player[0]
     y = player[1]
-    Beep[625, 10]
+    #Beep[625, 10]
 
     if (v == UPKEY):
+        #отримуємо номер об'єкту зверху
         check = getNumber(x - 1, y)
+        #якщо там пусто, то рухаємося
         if (check == 0):
             movePlayerTo(0, -8, 8)
+            #та міняємо координату
             player[0] -= 1
+        #якщо там ящик
         elif (check == 2):
+            #отримуємо номер об'єкту за ящиком
             nextCheck = getNumber(x - 2, y)
+            #якщо там пусто то переміщаємо ящик та себе
             if (nextCheck == 0):
                 numberBox = getBox(x - 1, y)
                 movePlayerBoxTo(0, -8, 8, numberBox)
+                #змінюємо координати гравця
                 player[0] -= 1
+                #та ящика
                 boxes[numberBox][0] -= 1
     elif (v == DOWNKEY):
         check = getNumber(x + 1, y)
@@ -181,8 +281,8 @@ def move(v):
             if (nextCheck == 0):
                 numberBox = getBox(x, y - 1)
                 movePlayerBoxTo(-8, 0, 8, numberBox)
-                player[0] -= 1
-                boxes[numberBox][0] -= 1
+                player[1] -= 1
+                boxes[numberBox][1] -= 1
     elif (v == RIGHTKEY):
         check = getNumber(x, y + 1)
         if (check == 0):
@@ -193,8 +293,8 @@ def move(v):
             if (nextCheck == 0):
                 numberBox = getBox(x, y + 1)
                 movePlayerBoxTo(8, 0, 8, numberBox)
-                player[0] += 1
-                boxes[numberBox][0] += 1
+                player[1] += 1
+                boxes[numberBox][1] += 1
 
 #===============================Start programm =========================================
 #створюємо вікно
@@ -274,7 +374,7 @@ textTime = None
 #минулий час
 second = None
 #рівень
-level = 5
+level = 1
 
 #данні про ігрове поле, завантажуються з файла
 dataLevel = []
